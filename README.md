@@ -1,1 +1,3 @@
 # Cocos Creator、Node.js、实时对战、IO、帧同步
+
+一个具有房间系统的联网小游戏...
