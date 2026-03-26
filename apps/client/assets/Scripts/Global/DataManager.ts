@@ -1,7 +1,11 @@
+import { Prefab, SpriteFrame } from "cc";
 import { JoyStickManager } from "../../UI/JoyStickManager";
 import Singleton from "../Base/Singleton";
-import { IState } from "../Common";
+import { EntityTypeEnum, IActorMove, IState } from "../Common";
+import { ActorManager } from "../Entity/Actor/ActorManager";
 
+
+const ACTOR_SPEED = 100;
 
 export default class DataManager extends Singleton {
   static get Instance() {
@@ -10,10 +14,14 @@ export default class DataManager extends Singleton {
 
   jm: JoyStickManager;
 
+  actorMap: Map<number,ActorManager> = new Map();
+  prefabMap: Map<string,Prefab> = new Map();
+  textureMap: Map<string,SpriteFrame[]> = new Map();
+
   state:IState = {
     actors:[
       {
-        id:0,
+        id:1,
         position:{
           x:0,
           y:0,
@@ -21,15 +29,32 @@ export default class DataManager extends Singleton {
         direction:{
           x:1,
           y:0,
-        }
+        },
+        type:EntityTypeEnum.Actor1,
       }
     ]
   }
 
 
-  applyInput(){
-    
+  applyInput(input: IActorMove){
+
+
+    const{
+      id,
+      dt,
+      direction:{x,y},
+    } = input;
+    const actor = this.state.actors.find((i)=>i.id === id)
+
+    actor.direction.x = x;
+    actor.direction.y = y;
+
+    actor.position.x += x * dt * ACTOR_SPEED;
+    actor.position.y += y * dt * ACTOR_SPEED;
+
   }
+
+
 
 
 }
