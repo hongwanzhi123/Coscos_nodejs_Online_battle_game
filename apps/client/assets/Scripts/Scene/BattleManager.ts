@@ -4,7 +4,9 @@ import { JoyStickManager } from '../../UI/JoyStickManager';
 import { ResourceManager } from '../Global/ResourceManager';
 import { ActorManager } from '../Entity/Actor/ActorManager';
 import { PrefabPathEnum, TexturePathEnum } from '../Enum';
-import { EntityTypeEnum } from '../Common';
+import { EntityTypeEnum, InputTypeEnum } from '../Common';
+import { BulletManager } from '../Bullet/BulletManager';
+import { ObjectPoolManager } from '../Global/ObjectPoolManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('BattleManager')
@@ -19,7 +21,7 @@ export class BattleManager extends Component {
      
     onLoad() {
        
-      this.stage =  this.node.getChildByName("Stage");
+      DataManager.Instance.stage = this.stage =  this.node.getChildByName("Stage");
       this.ui = this.node.getChildByName("UI");
       this.stage.destroyAllChildren();
       DataManager.Instance.jm = this.ui.getComponentInChildren(JoyStickManager);
@@ -44,7 +46,7 @@ export class BattleManager extends Component {
       
       for (const type in TexturePathEnum) {
          const p = ResourceManager.Instance.loadDir(TexturePathEnum[type],SpriteFrame).then((spriteFrames)=>{
-        DataManager.Instance.textureMap.set(type,spriteFrames);
+         DataManager.Instance.textureMap.set(type,spriteFrames);
       });
 
         list.push(p);
@@ -66,6 +68,10 @@ export class BattleManager extends Component {
 
     tick(dt){
       this.tickActor(dt);
+      DataManager.Instance.applyInput({
+        type: InputTypeEnum.TimePast,
+        dt,
+      })
     }
 
     tickActor(dt){
@@ -84,6 +90,7 @@ export class BattleManager extends Component {
 
     render() {
       this.renderActor();
+      this.renderBullet();
     }
 
     renderActor(){
@@ -97,11 +104,32 @@ export class BattleManager extends Component {
           am = actor.addComponent(ActorManager);
           DataManager.Instance.actorMap.set(id,am);
           am.init(data);
+          am.render(data);
         }else{
           am.render(data);
         }
       }
     }
+
+    renderBullet(){
+      for (const data of DataManager.Instance.state.bullets) {
+        const{id,type} = data;
+        let bm = DataManager.Instance.bulletMap.get(id);
+        if(!bm){
+          
+          const bullet = ObjectPoolManager.Instance.get(type);
+         
+          bm = bullet.getComponent(BulletManager) || bullet.addComponent(BulletManager);
+          DataManager.Instance.bulletMap.set(id,bm);
+          bm.init(data);
+          bm.render(data);
+        }else{
+          bm.render(data);
+        }
+      }
+    }
+
+    
 
    
 
